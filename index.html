@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Age Group Timeline Planner</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <header class="mb-4">
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="bi bi-calendar-range me-2"></i>Age Group Timeline Planner
+            </h1>
+            <p class="lead text-muted">Visualize when people enter and exit age groups over time • Plan capacity and find gaps</p>
+        </header>
+
+        <!-- Controls -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Timeline Range</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="startYear" value="2020" min="1990" max="2100">
+                            <span class="input-group-text">to</span>
+                            <input type="number" class="form-control" id="endYear" value="2050" min="1990" max="2100">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Sort By</label>
+                        <select class="form-select" id="sortBy">
+                            <option value="startDate">Start Date (18th birthday)</option>
+                            <option value="name">Name</option>
+                            <option value="dob">Date of Birth</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Filter by Active Year</label>
+                        <select class="form-select" id="filterYear">
+                            <option value="all">Show All</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Max Capacity</label>
+                        <input type="number" class="form-control" id="maxCapacity" value="10" min="1" max="100">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" onclick="applySettings()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body py-2">
+                <div class="d-flex flex-wrap gap-4 align-items-center">
+                    <span class="fw-semibold">Sections:</span>
+                    <div class="d-flex align-items-center">
+                        <div class="legend-box bg-beavers me-2"></div>
+                        <span><strong>Beavers</strong> (6-8)</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="legend-box bg-cubs me-2"></div>
+                        <span><strong>Cubs</strong> (8-10½)</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="legend-box bg-scouts me-2"></div>
+                        <span><strong>Scouts</strong> (10½-14)</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="legend-box bg-explorers me-2"></div>
+                        <span><strong>Explorers</strong> (14-18)</span>
+                    </div>
+                    <div class="d-flex align-items-center ms-auto">
+                        <div class="legend-box bg-today me-2"></div>
+                        <span>Today</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="legend-box bg-overcapacity me-2"></div>
+                        <span>Over Capacity</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Input Panel -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Data Input (CSV Format)</h5>
+                <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#dataInputCollapse">
+                    <i class="bi bi-chevron-down" id="data-panel-toggle"></i>
+                </button>
+            </div>
+            <div class="collapse show" id="dataInputCollapse">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Paste your data below in CSV format: <code>Name,DateOfBirth</code> (one person per line, date as YYYY-MM-DD)
+                        </label>
+                        <textarea class="form-control font-monospace" id="csvDataInput" rows="8" placeholder="Emma Thompson,2020-03-15
+James Wilson,2019-08-22
+..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success" onclick="loadFromCSV()">
+                            <i class="bi bi-play-fill me-1"></i>Load Data
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearData()">
+                            <i class="bi bi-trash me-1"></i>Clear
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="downloadCSV()">
+                            <i class="bi bi-download me-1"></i>Download CSV
+                        </button>
+                        <span class="ms-auto align-self-center text-muted" id="data-status"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capacity Chart -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Yearly Capacity Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="capacity-chart" id="capacity-chart"></div>
+                <div class="capacity-legend mt-2 text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Bars show number of active people per year. Red indicates over capacity.
+                </div>
+            </div>
+        </div>
+
+        <!-- Gap Finder -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-search me-2"></i>Gap Finder - Find Ideal Birth Dates</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Target Year (when they start Beavers at 6)</label>
+                        <input type="number" class="form-control" id="targetYear" value="2030" min="2000" max="2100">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">How many people needed?</label>
+                        <input type="number" class="form-control" id="neededPeople" value="3" min="1" max="50">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-success w-100" onclick="findGaps()">
+                            <i class="bi bi-lightbulb me-1"></i>Suggest Birth Date Ranges
+                        </button>
+                    </div>
+                </div>
+                <div id="gap-results"></div>
+            </div>
+        </div>
+
+        <!-- Timeline Gantt Chart -->
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart-steps me-2"></i>Timeline View
+                        <span class="badge bg-secondary ms-2" id="person-count">0 people</span>
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="scrollToToday()">
+                            <i class="bi bi-geo-alt"></i> Today
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="gantt-container">
+                    <!-- Fixed Name Column -->
+                    <div class="gantt-sidebar" id="gantt-sidebar">
+                        <div class="gantt-sidebar-header">
+                            <div class="sidebar-cell">Name</div>
+                            <div class="sidebar-cell">DOB</div>
+                        </div>
+                        <div class="gantt-sidebar-body" id="gantt-sidebar-body">
+                            <!-- Names will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Scrollable Timeline -->
+                    <div class="gantt-main" id="gantt-main">
+                        <div class="gantt-header" id="gantt-header">
+                            <!-- Year headers will be inserted here -->
+                        </div>
+                        <div class="gantt-body" id="gantt-body">
+                            <!-- Timeline rows will be inserted here -->
+                        </div>
+                        <!-- Today marker -->
+                        <div class="today-marker" id="today-marker"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading data...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="alert alert-danger d-none mt-4" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span id="error-text"></span>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="custom-tooltip"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
