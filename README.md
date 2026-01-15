@@ -1,16 +1,15 @@
 # TLDR;
 
-No Cookies used, does not save data to any server, runs on your devices, html hosted on GitHub. Unlinited use. Happy Scouting ✌️
+No Cookies used, does not save data to any server, no compile, runs on your devices, html hosted on GitHub. Unlinited use. Happy Scouting ✌️
 https://p10tyr.github.io/gantry/
 
 # Intro
 I needed something to help me visualise what each section withing my Scouts colony would look like over the years.
 Needless to say OSM tried to do something like this and they gave up with the reason of "everybody does it differently" 
 
-This is the way I had visualised it in my head and I used Claude (Thanks GitHub Public free credits) to create a no server required, single HTML, host on anything page, - that can render a Gantt chart based on the files OSM exports.
+This is the way I had visualised it in my head and I used Claude (Thanks GitHub Public free credits) to create a no server required, sick of compling code all day so it just needs to run, single HTML, host on anything page,- that can render a Gantt chart based on the files OSM exports.
 
 I hope this helps you.. but if its not your thing .. Try and vibe it out on your own. Let us know.
-
 
 # How To
 In OSM
