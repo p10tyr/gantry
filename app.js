@@ -14,9 +14,10 @@ let settings = {
 
 // Constants
 const YEAR_WIDTH = 100; // pixels per year
-const AGE_START = 6;
+const AGE_START = 4;
 const AGE_END = 18;
 const AGE_GROUPS = {
+    squirrels: { min: 4, max: 6, color: 'squirrels', label: 'Squirrels' },
     beavers: { min: 6, max: 8, color: 'beavers', label: 'Beavers' },
     cubs: { min: 8, max: 10.5, color: 'cubs', label: 'Cubs' },
     scouts: { min: 10.5, max: 14, color: 'scouts', label: 'Scouts' },
@@ -24,66 +25,7 @@ const AGE_GROUPS = {
 };
 
 // Default sample data (pre-populated in CSV input)
-const DEFAULT_CSV_DATA = `Emma Thompson,2020-03-15
-James Wilson,2019-08-22
-Sophia Martinez,2018-11-30
-Oliver Brown,2017-05-18
-Isabella Garcia,2016-09-07
-William Davis,2020-01-25
-Mia Johnson,2019-04-12
-Benjamin Miller,2018-07-08
-Charlotte Anderson,2017-12-03
-Lucas Taylor,2016-02-28
-Amelia Thomas,2015-06-14
-Henry Jackson,2014-10-19
-Harper White,2013-08-05
-Alexander Harris,2012-03-22
-Evelyn Clark,2011-11-11
-Sebastian Lewis,2020-02-14
-Abigail Robinson,2019-06-30
-Jack Walker,2018-09-25
-Emily Hall,2017-01-17
-Daniel Allen,2016-05-09
-Elizabeth Young,2015-08-21
-Michael King,2014-12-04
-Sofia Wright,2013-04-16
-David Scott,2012-07-28
-Avery Green,2011-02-10
-Joseph Baker,2010-09-03
-Ella Adams,2009-11-22
-Matthew Nelson,2008-04-07
-Grace Hill,2021-06-19
-Andrew Campbell,2021-01-31
-Chloe Mitchell,2019-10-08
-Ryan Roberts,2018-03-14
-Lily Carter,2017-07-26
-Nathan Phillips,2016-11-02
-Zoey Evans,2015-02-18
-Samuel Turner,2014-05-24
-Hannah Torres,2013-09-11
-Christopher Parker,2012-12-29
-Addison Collins,2011-06-06
-Dylan Edwards,2010-08-15
-Natalie Stewart,2020-04-20
-Isaac Sanchez,2019-01-09
-Layla Morris,2018-05-31
-Joshua Rogers,2017-10-14
-Riley Reed,2016-03-26
-Gabriel Cook,2015-07-08
-Aubrey Morgan,2014-11-20
-Owen Bell,2013-02-05
-Scarlett Murphy,2012-09-17
-Caleb Bailey,2011-04-29
-Aria Rivera,2010-07-12
-Elijah Cooper,2009-10-24
-Penelope Richardson,2008-01-06
-Levi Cox,2021-08-18
-Victoria Howard,2021-12-30
-Adrian Ward,2019-12-15
-Nora Peterson,2018-02-27
-Lincoln Gray,2017-06-09
-Savannah Ramirez,2016-08-21
-Leo James,2015-04-03`;
+const DEFAULT_CSV_DATA = ``;
 
 // ============================================
 // Utility Functions
@@ -147,6 +89,7 @@ function processPersonData(person) {
     const currentAge = calculateAge(dob);
     
     // Calculate transition dates for UK Scouts sections
+    const turnsBeavers = getDateAtAge(dob, 6);   // Squirrels -> Beavers at 6
     const turnsCubs = getDateAtAge(dob, 8);      // Beavers -> Cubs at 8
     const turnsScouts = getDateAtAge(dob, 10.5); // Cubs -> Scouts at 10.5
     const turnsExplorers = getDateAtAge(dob, 14); // Scouts -> Explorers at 14
@@ -155,6 +98,7 @@ function processPersonData(person) {
         ...person,
         startDate,
         endDate,
+        turnsBeavers,
         turnsCubs,
         turnsScouts,
         turnsExplorers,
@@ -196,7 +140,7 @@ function calculateCapacity(data) {
     const capacity = {};
     
     for (let year = settings.startYear; year <= settings.endYear; year++) {
-        capacity[year] = { total: 0, beavers: 0, cubs: 0, scouts: 0, explorers: 0 };
+        capacity[year] = { total: 0, squirrels: 0, beavers: 0, cubs: 0, scouts: 0, explorers: 0 };
     }
     
     data.forEach(person => {
@@ -209,7 +153,9 @@ function calculateCapacity(data) {
                 
                 // Determine primary age group for this year
                 const ageAtYearStart = year - parseDate(person.dateOfBirth).getFullYear();
-                if (ageAtYearStart >= 6 && ageAtYearStart < 8) {
+                if (ageAtYearStart >= 4 && ageAtYearStart < 6) {
+                    capacity[year].squirrels++;
+                } else if (ageAtYearStart >= 6 && ageAtYearStart < 8) {
                     capacity[year].beavers++;
                 } else if (ageAtYearStart >= 8 && ageAtYearStart < 10.5) {
                     capacity[year].cubs++;
@@ -234,7 +180,7 @@ function renderCapacityChart(capacity) {
     container.innerHTML = '';
     
     const maxCount = Math.max(...Object.values(capacity).map(c => c.total), settings.maxCapacity);
-    const chartHeight = 80;
+    const chartHeight = 320;
     
     for (let year = settings.startYear; year <= settings.endYear; year++) {
         const data = capacity[year];
@@ -245,14 +191,57 @@ function renderCapacityChart(capacity) {
         const wrapper = document.createElement('div');
         wrapper.className = 'capacity-bar-wrapper';
         
+        // Create stacked bar with sections
         const bar = document.createElement('div');
         bar.className = `capacity-bar ${isOverCapacity ? 'over-capacity' : ''}`;
         bar.style.height = `${Math.max(height, 4)}px`;
-        bar.title = `${year}: ${data.total} people\nBeavers: ${data.beavers}\nCubs: ${data.cubs}\nScouts: ${data.scouts}\nExplorers: ${data.explorers}`;
+        bar.style.position = 'relative';
+        
+        // Create tooltip with breakdown
+        const tooltipText = `${year}: ${data.total} people
+Squirrels (4-6): ${data.squirrels}
+Beavers (6-8): ${data.beavers}
+Cubs (8-10½): ${data.cubs}
+Scouts (10½-14): ${data.scouts}
+Explorers (14-18): ${data.explorers}`;
+        bar.title = tooltipText;
+        
+        // Add segments if there are people
+        if (data.total > 0) {
+            const sections = [
+                { name: 'squirrels', count: data.squirrels, color: 'var(--squirrels-color)' },
+                { name: 'beavers', count: data.beavers, color: 'var(--beavers-color)' },
+                { name: 'cubs', count: data.cubs, color: 'var(--cubs-color)' },
+                { name: 'scouts', count: data.scouts, color: 'var(--scouts-color)' },
+                { name: 'explorers', count: data.explorers, color: 'var(--explorers-color)' }
+            ];
+            
+            sections.forEach(section => {
+                if (section.count > 0) {
+                    const segmentHeight = (section.count / data.total) * 100;
+                    const segment = document.createElement('div');
+                    segment.className = `capacity-segment capacity-segment-${section.name}`;
+                    segment.style.height = `${segmentHeight}%`;
+                    segment.style.backgroundColor = `var(--${section.name}-color)`;
+                    bar.appendChild(segment);
+                }
+            });
+        }
         
         const count = document.createElement('div');
         count.className = 'capacity-count';
-        count.textContent = data.total;
+        count.innerHTML = `<div>${data.total}</div>`;
+        
+        // Add section breakdown below total count
+        const breakdown = document.createElement('div');
+        breakdown.className = 'capacity-breakdown';
+        breakdown.innerHTML = `
+            <div class="breakdown-item" style="color: var(--squirrels-color);">S:${data.squirrels}</div>
+            <div class="breakdown-item" style="color: var(--beavers-color);">B:${data.beavers}</div>
+            <div class="breakdown-item" style="color: var(--cubs-color);">C:${data.cubs}</div>
+            <div class="breakdown-item" style="color: var(--scouts-color);">Sc:${data.scouts}</div>
+            <div class="breakdown-item" style="color: var(--explorers-color);">E:${data.explorers}</div>
+        `;
         
         const yearLabel = document.createElement('div');
         yearLabel.className = 'capacity-year';
@@ -261,6 +250,7 @@ function renderCapacityChart(capacity) {
         
         wrapper.appendChild(count);
         wrapper.appendChild(bar);
+        wrapper.appendChild(breakdown);
         wrapper.appendChild(yearLabel);
         container.appendChild(wrapper);
     }
@@ -346,12 +336,27 @@ function createTimelineBar(person) {
     
     // Calculate segment positions for UK Scouts sections
     const totalWidth = endPos - startPos;
+    const posBeavers = getPositionForDate(person.turnsBeavers, settings.startYear) - startPos;
     const posCubs = getPositionForDate(person.turnsCubs, settings.startYear) - startPos;
     const posScouts = getPositionForDate(person.turnsScouts, settings.startYear) - startPos;
     const posExplorers = getPositionForDate(person.turnsExplorers, settings.startYear) - startPos;
     
+    // Squirrels segment (4-6)
+    const squirrelsWidth = Math.max(0, Math.min(posBeavers, totalWidth));
+    if (squirrelsWidth > 0) {
+        const segment = document.createElement('div');
+        segment.className = 'bar-segment squirrels';
+        segment.style.width = `${(squirrelsWidth / totalWidth) * 100}%`;
+        const label = document.createElement('span');
+        label.className = 'segment-label';
+        label.textContent = 'Squirrels';
+        segment.appendChild(label);
+        bar.appendChild(segment);
+    }
+    
     // Beavers segment (6-8)
-    const beaversWidth = Math.max(0, Math.min(posCubs, totalWidth));
+    const beaversStart = Math.max(0, posBeavers);
+    const beaversWidth = Math.max(0, Math.min(posCubs, totalWidth) - beaversStart);
     if (beaversWidth > 0) {
         const segment = document.createElement('div');
         segment.className = 'bar-segment beavers';
@@ -435,11 +440,12 @@ function showTooltip(event, person) {
     
     // Determine current section based on UK Scouts age ranges
     let currentSection = '';
-    if (person.currentAge >= 6 && person.currentAge < 8) currentSection = 'Beavers';
+    if (person.currentAge >= 4 && person.currentAge < 6) currentSection = 'Squirrels';
+    else if (person.currentAge >= 6 && person.currentAge < 8) currentSection = 'Beavers';
     else if (person.currentAge >= 8 && person.currentAge < 10.5) currentSection = 'Cubs';
     else if (person.currentAge >= 10.5 && person.currentAge < 14) currentSection = 'Scouts';
     else if (person.currentAge >= 14 && person.currentAge < 18) currentSection = 'Explorers';
-    else if (person.currentAge < 6) currentSection = 'Not yet 6';
+    else if (person.currentAge < 4) currentSection = 'Not yet 4';
     else currentSection = 'Aged out';
     
     tooltip.innerHTML = `
@@ -453,8 +459,12 @@ function showTooltip(event, person) {
             <span>${person.currentAge} years (${currentSection})</span>
         </div>
         <div class="tooltip-row">
-            <span class="tooltip-label">Beavers (6):</span>
+            <span class="tooltip-label">Squirrels (4):</span>
             <span>${formatDate(person.startDate)}</span>
+        </div>
+        <div class="tooltip-row">
+            <span class="tooltip-label">Beavers (6):</span>
+            <span>${formatDate(person.turnsBeavers)}</span>
         </div>
         <div class="tooltip-row">
             <span class="tooltip-label">Cubs (8):</span>
@@ -740,11 +750,12 @@ function loadFromCSV() {
         return;
     }
     
-    // Load the data
-    peopleData = people;
+    // Append the data (not replace)
+    const previousCount = peopleData.length;
+    peopleData = [...peopleData, ...people];
     
     // Update status
-    statusEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Loaded ${people.length} people</span>`;
+    statusEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Loaded ${people.length} people (Total: ${peopleData.length})</span>`;
     
     // Render
     renderAll();
@@ -756,7 +767,9 @@ function loadFromCSV() {
 function clearData() {
     document.getElementById('csvDataInput').value = '';
     document.getElementById('data-status').innerHTML = '';
+    document.getElementById('xlsx-status').innerHTML = '';
     document.getElementById('error-message').classList.add('d-none');
+    document.getElementById('xlsxFileInput').value = '';
     
     peopleData = [];
     renderAll();
@@ -787,12 +800,225 @@ function downloadCSV() {
 }
 
 // ============================================
+// XLSX File Handling
+// ============================================
+
+function parseXLSXData(arrayBuffer) {
+    try {
+        // Read the workbook
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // Convert to JSON
+        const rawData = XLSX.utils.sheet_to_json(worksheet);
+        
+        const people = [];
+        const errors = [];
+        
+        rawData.forEach((row, index) => {
+            // Try different possible column name variations (case-insensitive search)
+            let firstName = null;
+            let dob = null;
+            
+            // Find first name column (case-insensitive)
+            const firstNameKey = Object.keys(row).find(key => 
+                key.toLowerCase().replace(/\s+/g, '') === 'firstname'
+            );
+            if (firstNameKey) firstName = row[firstNameKey];
+            
+            // Find date of birth column (case-insensitive)
+            const dobKey = Object.keys(row).find(key => {
+                const normalized = key.toLowerCase().replace(/\s+/g, '');
+                return normalized === 'dateofbirth' || normalized === 'dob';
+            });
+            if (dobKey) dob = row[dobKey];
+            
+            if (!firstName || !dob) {
+                const availableColumns = Object.keys(row).filter(k => k !== null && k !== undefined);
+                errors.push(`Row ${index + 2}: Missing required columns. Found: ${availableColumns.join(', ')}`);
+                return;
+            }
+            
+            // Clean up the name
+            firstName = String(firstName).trim();
+            
+            // Handle various date formats
+            let dateOfBirth = '';
+            
+            if (typeof dob === 'number') {
+                // Excel date serial number
+                const excelEpoch = new Date(1900, 0, 1);
+                const date = new Date(excelEpoch.getTime() + (dob - 2) * 24 * 60 * 60 * 1000);
+                dateOfBirth = formatDateToISO(date);
+            } else {
+                // String format - try to parse
+                dateOfBirth = parseDateString(String(dob).trim());
+            }
+            
+            // Validate the date format
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+                errors.push(`Row ${index + 2}: Invalid date format for ${firstName} - expected YYYY-MM-DD, got "${dob}"`);
+                return;
+            }
+            
+            // Validate the date is actually valid
+            const testDate = new Date(dateOfBirth);
+            if (isNaN(testDate.getTime())) {
+                errors.push(`Row ${index + 2}: Invalid date "${dateOfBirth}" for ${firstName}`);
+                return;
+            }
+            
+            people.push({ name: firstName, dateOfBirth });
+        });
+        
+        return { people, errors };
+    } catch (error) {
+        return { people: [], errors: [`Failed to parse XLSX file: ${error.message}`] };
+    }
+}
+
+function formatDateToISO(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function parseDateString(dateStr) {
+    // Try various date formats: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, DD-MM-YYYY, etc.
+    
+    // First try ISO format YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
+    }
+    
+    // Try DD/MM/YYYY
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
+        const parts = dateStr.split('/');
+        if (parts[0].length <= 2 && parts[1].length <= 2) {
+            // Assume DD/MM/YYYY format
+            const day = String(parts[0]).padStart(2, '0');
+            const month = String(parts[1]).padStart(2, '0');
+            const year = parts[2];
+            return `${year}-${month}-${day}`;
+        }
+    }
+    
+    // Try MM/DD/YYYY
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
+        const parts = dateStr.split('/');
+        if (parts[1].length <= 2) {
+            const month = String(parts[0]).padStart(2, '0');
+            const day = String(parts[1]).padStart(2, '0');
+            const year = parts[2];
+            return `${year}-${month}-${day}`;
+        }
+    }
+    
+    // Try DD-MM-YYYY
+    if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateStr)) {
+        const parts = dateStr.split('-');
+        if (parts[0].length <= 2 && parts[1].length <= 2) {
+            const day = String(parts[0]).padStart(2, '0');
+            const month = String(parts[1]).padStart(2, '0');
+            const year = parts[2];
+            return `${year}-${month}-${day}`;
+        }
+    }
+    
+    return dateStr; // Return as-is if unable to parse
+}
+
+function handleXLSXFileSelect() {
+    const fileInput = document.getElementById('xlsxFileInput');
+    const files = fileInput.files;
+    const statusEl = document.getElementById('xlsx-status');
+    const errorDiv = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    
+    if (files.length === 0) {
+        return;
+    }
+    
+    // Hide previous errors
+    errorDiv.classList.add('d-none');
+    
+    let totalPeopleLoaded = 0;
+    let allErrors = [];
+    
+    // Process each file
+    let filesProcessed = 0;
+    
+    Array.from(files).forEach((file, fileIndex) => {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            const arrayBuffer = e.target.result;
+            const { people, errors } = parseXLSXData(arrayBuffer);
+            
+            if (errors.length > 0) {
+                allErrors = allErrors.concat(errors.map(err => `[${file.name}] ${err}`));
+            }
+            
+            // Append the data
+            totalPeopleLoaded += people.length;
+            peopleData = [...peopleData, ...people];
+            
+            filesProcessed++;
+            
+            // When all files are processed
+            if (filesProcessed === files.length) {
+                if (allErrors.length > 0) {
+                    errorDiv.classList.remove('d-none');
+                    errorText.innerHTML = `<strong>XLSX Parsing Errors:</strong><br>${allErrors.slice(0, 5).join('<br>')}${allErrors.length > 5 ? `<br>... and ${allErrors.length - 5} more errors` : ''}`;
+                }
+                
+                if (totalPeopleLoaded === 0) {
+                    statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>No valid entries found</span>';
+                } else {
+                    statusEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Loaded ${totalPeopleLoaded} people from ${files.length} file(s) (Total: ${peopleData.length})</span>`;
+                    renderAll();
+                    setTimeout(scrollToToday, 300);
+                }
+                
+                // Reset file input
+                fileInput.value = '';
+            }
+        };
+        
+        reader.onerror = () => {
+            allErrors.push(`[${file.name}] Failed to read file`);
+            filesProcessed++;
+            
+            if (filesProcessed === files.length) {
+                errorDiv.classList.remove('d-none');
+                errorText.innerHTML = `<strong>Error:</strong><br>${allErrors.join('<br>')}`;
+                fileInput.value = '';
+            }
+        };
+        
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// ============================================
+// Previous CSV Functions (unchanged)
+// ============================================
+
+// ============================================
 // Initialization
 // ============================================
 
 function initializeApp() {
     // Hide loading spinner
     document.getElementById('loading').style.display = 'none';
+    
+    // Setup XLSX file input listener
+    const xlsxFileInput = document.getElementById('xlsxFileInput');
+    if (xlsxFileInput) {
+        xlsxFileInput.addEventListener('change', handleXLSXFileSelect);
+    }
     
     // Pre-populate the CSV input with default data
     document.getElementById('csvDataInput').value = DEFAULT_CSV_DATA;

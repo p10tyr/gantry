@@ -8,6 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- SheetJS for XLSX parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -64,6 +66,10 @@
                 <div class="d-flex flex-wrap gap-4 align-items-center">
                     <span class="fw-semibold">Sections:</span>
                     <div class="d-flex align-items-center">
+                        <div class="legend-box bg-squirrels me-2"></div>
+                        <span><strong>Squirrels</strong> (4-6)</span>
+                    </div>
+                    <div class="d-flex align-items-center">
                         <div class="legend-box bg-beavers me-2"></div>
                         <span><strong>Beavers</strong> (6-8)</span>
                     </div>
@@ -94,27 +100,39 @@
         <!-- Data Input Panel -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Data Input (CSV Format)</h5>
+                <h5 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Data Input (CSV or XLSX Format)</h5>
                 <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#dataInputCollapse">
                     <i class="bi bi-chevron-down" id="data-panel-toggle"></i>
                 </button>
             </div>
             <div class="collapse show" id="dataInputCollapse">
                 <div class="card-body">
+                    <!-- XLSX Upload Section -->
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <h6 class="mb-3"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Load from XLSX Files</h6>
+                        <p class="small text-muted mb-3">Select one or more XLSX files with "First Name" and "Date of Birth" columns. Data will be appended each time you load.</p>
+                        <div class="d-flex gap-2">
+                            <input type="file" id="xlsxFileInput" accept=".xlsx" multiple style="display: none;">
+                            <button class="btn btn-info" onclick="document.getElementById('xlsxFileInput').click()">
+                                <i class="bi bi-file-earmark-arrow-up me-1"></i>Select XLSX File(s)
+                            </button>
+                            <span class="align-self-center text-muted small" id="xlsx-status"></span>
+                        </div>
+                    </div>
+
+                    <!-- CSV Manual Input Section -->
                     <div class="mb-3">
                         <label class="form-label">
-                            Paste your data below in CSV format: <code>Name,DateOfBirth</code> (one person per line, date as YYYY-MM-DD)
+                            Or paste your data below in CSV format: <code>Name,DateOfBirth</code> (one person per line, date as YYYY-MM-DD)
                         </label>
-                        <textarea class="form-control font-monospace" id="csvDataInput" rows="8" placeholder="Emma Thompson,2020-03-15
-James Wilson,2019-08-22
-..."></textarea>
+                        <textarea class="form-control font-monospace" id="csvDataInput" rows="8" placeholder="Piotr Kula,2020-03-15"></textarea>
                     </div>
                     <div class="d-flex gap-2">
                         <button class="btn btn-success" onclick="loadFromCSV()">
-                            <i class="bi bi-play-fill me-1"></i>Load Data
+                            <i class="bi bi-play-fill me-1"></i>Load CSV Data
                         </button>
                         <button class="btn btn-outline-secondary" onclick="clearData()">
-                            <i class="bi bi-trash me-1"></i>Clear
+                            <i class="bi bi-trash me-1"></i>Clear All
                         </button>
                         <button class="btn btn-outline-secondary" onclick="downloadCSV()">
                             <i class="bi bi-download me-1"></i>Download CSV
@@ -127,40 +145,50 @@ James Wilson,2019-08-22
 
         <!-- Capacity Chart -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-white">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Yearly Capacity Overview</h5>
+                <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#capacityCollapse">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
             </div>
-            <div class="card-body">
-                <div class="capacity-chart" id="capacity-chart"></div>
-                <div class="capacity-legend mt-2 text-muted small">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Bars show number of active people per year. Red indicates over capacity.
+            <div class="collapse show" id="capacityCollapse">
+                <div class="card-body">
+                    <div class="capacity-chart" id="capacity-chart"></div>
+                    <div class="capacity-legend mt-2 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Bars show number of active people per year. Red indicates over capacity.
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Gap Finder -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header bg-white">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-search me-2"></i>Gap Finder - Find Ideal Birth Dates</h5>
+                <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#gapFinderCollapse">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
             </div>
-            <div class="card-body">
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Target Year (when they start Beavers at 6)</label>
-                        <input type="number" class="form-control" id="targetYear" value="2030" min="2000" max="2100">
+            <div class="collapse" id="gapFinderCollapse">
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Target Year (when they start Beavers at 6)</label>
+                            <input type="number" class="form-control" id="targetYear" value="2030" min="2000" max="2100">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">How many people needed?</label>
+                            <input type="number" class="form-control" id="neededPeople" value="3" min="1" max="50">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-success w-100" onclick="findGaps()">
+                                <i class="bi bi-lightbulb me-1"></i>Suggest Birth Date Ranges
+                            </button>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">How many people needed?</label>
-                        <input type="number" class="form-control" id="neededPeople" value="3" min="1" max="50">
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button class="btn btn-success w-100" onclick="findGaps()">
-                            <i class="bi bi-lightbulb me-1"></i>Suggest Birth Date Ranges
-                        </button>
-                    </div>
+                    <div id="gap-results"></div>
                 </div>
-                <div id="gap-results"></div>
             </div>
         </div>
 
