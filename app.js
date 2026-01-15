@@ -11,6 +11,13 @@ let settings = {
     filterYear: 'all',
     maxCapacity: 10
 };
+let visibleSections = {
+    squirrels: true,
+    beavers: true,
+    cubs: true,
+    scouts: true,
+    explorers: true
+};
 
 // Constants
 const YEAR_WIDTH = 100; // pixels per year
@@ -427,12 +434,15 @@ function createTimelineBar(person) {
 
 function positionTodayMarker() {
     const marker = document.getElementById('today-marker');
+    const ganttBody = document.getElementById('gantt-body');
     const today = new Date();
     const position = getPositionForDate(today, settings.startYear);
     
     if (position >= 0 && position <= (settings.endYear - settings.startYear + 1) * YEAR_WIDTH) {
         marker.style.left = `${position}px`;
         marker.style.display = 'block';
+        // Set height to match the gantt body content height plus one row height to reach the bottom
+        marker.style.height = `${ganttBody.scrollHeight + 36}px`;
     } else {
         marker.style.display = 'none';
     }
@@ -618,6 +628,32 @@ function applySettings() {
     settings.maxCapacity = parseInt(document.getElementById('maxCapacity').value);
     
     renderAll();
+}
+
+function toggleSection(section) {
+    visibleSections[section] = !visibleSections[section];
+    
+    // Update legend item styling
+    const legendItem = document.querySelector(`.legend-item[data-section="${section}"]`);
+    if (visibleSections[section]) {
+        legendItem.style.opacity = '1';
+        legendItem.style.textDecoration = 'none';
+    } else {
+        legendItem.style.opacity = '0.4';
+        legendItem.style.textDecoration = 'line-through';
+    }
+    
+    // Update timeline segments visibility - use opacity instead of display to preserve layout
+    const segments = document.querySelectorAll(`.bar-segment.${section}`);
+    segments.forEach(segment => {
+        if (visibleSections[section]) {
+            segment.style.opacity = '1';
+            segment.style.visibility = 'visible';
+        } else {
+            segment.style.opacity = '0';
+            segment.style.visibility = 'hidden';
+        }
+    });
 }
 
 function scrollToToday() {

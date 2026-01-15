@@ -43,6 +43,15 @@ body {
     flex-shrink: 0;
 }
 
+.legend-item {
+    transition: opacity 0.3s ease;
+    user-select: none;
+}
+
+.legend-item:hover {
+    opacity: 0.7 !important;
+}
+
 /* Capacity Chart */
 .capacity-chart {
     display: flex;
@@ -321,7 +330,7 @@ body {
 .today-marker {
     position: absolute;
     top: 0;
-    bottom: 0;
+    height: 100%;
     width: 2px;
     background-color: var(--today-color);
     z-index: 50;
