@@ -148,11 +148,18 @@ function calculateCapacity(data) {
             const yearStart = new Date(year, 0, 1);
             const yearEnd = new Date(year, 11, 31);
             
-            if (person.startDate <= yearEnd && person.endDate >= yearStart) {
+            // Determine age at year start
+            const birthDate = parseDate(person.dateOfBirth);
+            let ageAtYearStart = yearStart.getFullYear() - birthDate.getFullYear();
+            const m = yearStart.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && yearStart.getDate() < birthDate.getDate())) {
+                ageAtYearStart--;
+            }
+            
+            // Only count if they're in the active age range at year start AND overlap with the year
+            if (person.startDate <= yearEnd && person.endDate >= yearStart && ageAtYearStart >= 4 && ageAtYearStart < 18) {
                 capacity[year].total++;
                 
-                // Determine primary age group for this year
-                const ageAtYearStart = year - parseDate(person.dateOfBirth).getFullYear();
                 if (ageAtYearStart >= 4 && ageAtYearStart < 6) {
                     capacity[year].squirrels++;
                 } else if (ageAtYearStart >= 6 && ageAtYearStart < 8) {
@@ -161,7 +168,7 @@ function calculateCapacity(data) {
                     capacity[year].cubs++;
                 } else if (ageAtYearStart >= 10.5 && ageAtYearStart < 14) {
                     capacity[year].scouts++;
-                } else if (ageAtYearStart >= 14 && ageAtYearStart <= 18) {
+                } else if (ageAtYearStart >= 14 && ageAtYearStart < 18) {
                     capacity[year].explorers++;
                 }
             }
