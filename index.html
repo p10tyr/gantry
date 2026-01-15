@@ -109,29 +109,20 @@
             <div class="collapse show" id="dataInputCollapse">
                 <div class="card-body">
                     <!-- XLSX Upload Section -->
-                    <div class="mb-4 p-3 border rounded bg-light">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Load from XLSX Files</h6>
-                            <button class="btn btn-link p-0" type="button" data-bs-toggle="collapse" data-bs-target="#xlsxInstructionsCollapse">
-                                <i class="bi bi-question-circle" style="font-size: 1.5rem;"></i>
-                            </button>
-                        </div>
-                        <div class="collapse mb-3" id="xlsxInstructionsCollapse">
-                            <div class="alert alert-info mb-3" role="alert">
-                                <h6 class="alert-heading">In OSM</h6>
-                                <p class="mb-2">Select a section (and repeat for all)</p>
-                                <ul class="mb-0">
-                                    <li>Select Members > Personal Details</li>
-                                    <li>Select All -> Select Members (to select young people only)</li>
-                                    <li>Download -> Details PDF or Spreadsheet</li>
-                                    <li>Deselect everything except: Other Data > Date of Birth</li>
-                                    <li>Click Spreadsheet</li>
-                                    <li>Wait a moment. Click Download</li>
-                                    <li>Rpeat for all sections - Once you have all sheets...</li>
-                                    <li>On this site - Click "Select XLSX File(s)" and import them all at once</li>
-                                </ul>
-                                <a href="https://github.com/p10tyr/gantry?tab=readme-ov-file#how-to" target="_blank" rel="noopener noreferrer" class="alert-link">Still stuck? More info here ...</a>
-                            </div>
+                        <div class="alert alert-info mb-3" role="alert">
+                            <h6 class="alert-heading">In OSM</h6>
+                            <p class="mb-2">Select a section (and repeat for all)</p>
+                            <ul class="mb-0">
+                                <li>Select Members > Personal Details</li>
+                                <li>Select All -> Select Members (to select young people only)</li>
+                                <li>Download -> Details PDF or Spreadsheet</li>
+                                <li>Deselect everything except: Other Data > Date of Birth</li>
+                                <li>Click Spreadsheet</li>
+                                <li>Wait a moment. Click Download</li>
+                                <li>Rpeat for all sections - Once you have all sheets...</li>
+                                <li>On this site - Click "Select XLSX File(s)" and import them all at once</li>
+                            </ul>
+                            <a href="https://github.com/p10tyr/gantry?tab=readme-ov-file#how-to" target="_blank" rel="noopener noreferrer" class="alert-link">Still stuck? More info here ...</a>
                         </div>
                         <p class="small text-muted mb-3">Select one or more XLSX files with "First Name" and "Date of Birth" columns exported from OSM</p>
                         <div class="d-flex gap-2">
@@ -139,29 +130,12 @@
                             <button class="btn btn-info" onclick="document.getElementById('xlsxFileInput').click()">
                                 <i class="bi bi-file-earmark-arrow-up me-1"></i>Select XLSX File(s)
                             </button>
-                            <span class="align-self-center text-muted small" id="xlsx-status"></span>
-                        </div>
-                    </div>
-
-                    <!-- CSV Manual Input Section -->
-                    <!-- <div class="mb-3">
-                        <label class="form-label">
-                            Or paste your data below in CSV format: <code>Name,DateOfBirth</code> (one person per line, date as YYYY-MM-DD)
-                        </label>
-                        <textarea class="form-control font-monospace" id="csvDataInput" rows="8" placeholder="Piotr Kula,2020-03-15"></textarea>
-                    </div> -->
-                    <div class="d-flex gap-2">
-                        <!-- <button class="btn btn-success" onclick="loadFromCSV()">
-                            <i class="bi bi-play-fill me-1"></i>Load CSV Data
-                        </button> -->
-                        <button class="btn btn-outline-secondary" onclick="clearData()">
+                              <button class="btn btn-outline-secondary" onclick="clearData()">
                             <i class="bi bi-trash me-1"></i>Clear All
                         </button>
-                        <!-- <button class="btn btn-outline-secondary" onclick="downloadCSV()">
-                            <i class="bi bi-download me-1"></i>Download CSV
-                        </button> -->
-                        <span class="ms-auto align-self-center text-muted" id="data-status"></span>
-                    </div>
+                            <span class="align-self-center text-muted small" id="xlsx-status"></span>
+                             <span class="ms-auto align-self-center text-muted" id="data-status"></span>
+                        </div>
                 </div>
             </div>
         </div>
