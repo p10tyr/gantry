@@ -684,16 +684,39 @@ function populateFilterYears() {
 
 // Sync sidebar and main scrolling
 function setupScrollSync() {
+    // Use setTimeout to ensure DOM is fully updated
+    setTimeout(() => {
+        const main = document.getElementById('gantt-main');
+        const sidebar = document.getElementById('gantt-sidebar-body');
+        
+        if (!main || !sidebar) {
+            return;
+        }
+        
+        // Remove old listeners
+        main.removeEventListener('scroll', mainScrollHandler);
+        sidebar.removeEventListener('scroll', sidebarScrollHandler);
+        
+        // Add new listeners
+        main.addEventListener('scroll', mainScrollHandler, false);
+        sidebar.addEventListener('scroll', sidebarScrollHandler, false);
+    }, 0);
+}
+
+function mainScrollHandler(e) {
     const main = document.getElementById('gantt-main');
     const sidebar = document.getElementById('gantt-sidebar-body');
-    
-    main.addEventListener('scroll', () => {
+    if (sidebar && main) {
         sidebar.scrollTop = main.scrollTop;
-    });
-    
-    sidebar.addEventListener('scroll', () => {
+    }
+}
+
+function sidebarScrollHandler(e) {
+    const main = document.getElementById('gantt-main');
+    const sidebar = document.getElementById('gantt-sidebar-body');
+    if (main && sidebar) {
         main.scrollTop = sidebar.scrollTop;
-    });
+    }
 }
 
 // ============================================
@@ -720,6 +743,9 @@ function renderAll() {
     
     // Populate filter dropdown
     populateFilterYears();
+    
+    // Synchronize scrolling between sidebar and main area
+    setupScrollSync();
 }
 
 // ============================================
@@ -1063,8 +1089,11 @@ function initializeApp() {
         xlsxFileInput.addEventListener('change', handleXLSXFileSelect);
     }
     
-    // Pre-populate the CSV input with default data
-    document.getElementById('csvDataInput').value = DEFAULT_CSV_DATA;
+    // Pre-populate the CSV input with default data (if it exists)
+    const csvInput = document.getElementById('csvDataInput');
+    if (csvInput) {
+        csvInput.value = DEFAULT_CSV_DATA;
+    }
     
     // Setup scroll sync
     setupScrollSync();
