@@ -797,6 +797,11 @@ function loadFromCSV() {
     const errorDiv = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
     
+    // If CSV input doesn't exist, skip loading
+    if (!csvInput) {
+        return;
+    }
+    
     // Hide previous errors
     errorDiv.classList.add('d-none');
     
