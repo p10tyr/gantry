@@ -170,8 +170,14 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             # Get cookies from request to forward authentication
             cookie_header = self.headers.get('Cookie')
             
+            # Log the incoming request
+            print(f"\n{'='*80}")
+            print(f"PROXY REQUEST RECEIVED")
+            print(f"{'='*80}")
+            print(f"From: {self.path}")
+            
             try:
-                # Forward the request to OSM with cookies
+                # Forward the request to OSM with cookies and authorization
                 headers = {
                     'accept': '*/*',
                     'x-requested-with': 'XMLHttpRequest'
@@ -179,10 +185,27 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 if cookie_header:
                     headers['Cookie'] = cookie_header
                 
+                # Forward Authorization header (Bearer token)
+                auth_header = self.headers.get('Authorization')
+                if auth_header:
+                    headers['Authorization'] = auth_header
+                    print(f"Authorization: {auth_header[:50]}..." if len(auth_header) > 50 else f"Authorization: {auth_header}")
+                else:
+                    print("WARNING: No Authorization header found in request!")
+                
+                # Log the full request details
+                print(f"\nForwarding to OSM API:")
+                print(f"URL: {osm_url}")
+                print(f"Headers: {json.dumps({k: (v[:50] + '...' if len(v) > 50 else v) for k, v in headers.items()}, indent=2)}")
+                print(f"{'='*80}\n")
+                
                 req = urllib.request.Request(osm_url, headers=headers)
                 
                 with urllib.request.urlopen(req) as response:
                     response_data = response.read()
+                    
+                    print(f"SUCCESS: Received {len(response_data)} bytes from OSM API")
+                    print(f"{'='*80}\n")
                     
                     # Send success response
                     self.send_response(200)
@@ -194,6 +217,11 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             except HTTPError as e:
                 # Forward the error response
                 error_data = e.read()
+                print(f"ERROR RESPONSE FROM OSM API:")
+                print(f"Status Code: {e.code}")
+                print(f"Error Data: {error_data.decode('utf-8', errors='ignore')[:500]}")
+                print(f"{'='*80}\n")
+                
                 self.send_response(e.code)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
@@ -201,6 +229,10 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 
             except Exception as e:
                 # Send error response
+                print(f"EXCEPTION IN PROXY:")
+                print(f"Error: {str(e)}")
+                print(f"{'='*80}\n")
+                
                 self.send_response(500)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()

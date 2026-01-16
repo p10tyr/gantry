@@ -1,0 +1,3 @@
+[submodule "osmapispec"]
+	path = osmapispec
+	url = https://github.com/MMollart/API-Documentation

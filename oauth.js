@@ -1,12 +1,27 @@
 // OAuth Configuration for Online Scout Manager (OSM)
-const OAUTH_CONFIG = {
+// Default values - can be overridden via settings panel
+const DEFAULT_OAUTH_CONFIG = {
     authorizationUrl: 'https://www.onlinescoutmanager.co.uk/oauth/authorize',
     tokenUrl: 'https://www.onlinescoutmanager.co.uk/oauth/token',
     resourceUrl: 'https://www.onlinescoutmanager.co.uk/oauth/resource',
-    clientId: 'Y3mbA3SF13Vqvfv3AdEaS7inyN7YbrS6',
+    clientId: '',  // Set via settings panel
     redirectUri: 'https://localhost:8443/',
+    proxyUrl: '/oauth/token',
     scope: 'section:member:read'
 };
+
+// Get OAuth config from localStorage or defaults
+function getOAuthConfig() {
+    return {
+        authorizationUrl: DEFAULT_OAUTH_CONFIG.authorizationUrl,
+        tokenUrl: DEFAULT_OAUTH_CONFIG.tokenUrl,
+        resourceUrl: DEFAULT_OAUTH_CONFIG.resourceUrl,
+        clientId: localStorage.getItem('osm_client_id') || DEFAULT_OAUTH_CONFIG.clientId,
+        redirectUri: localStorage.getItem('osm_redirect_uri') || DEFAULT_OAUTH_CONFIG.redirectUri,
+        proxyUrl: localStorage.getItem('osm_proxy_url') || DEFAULT_OAUTH_CONFIG.proxyUrl,
+        scope: DEFAULT_OAUTH_CONFIG.scope
+    };
+}
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -57,8 +72,10 @@ function base64URLEncode(buffer) {
  * Initiate OAuth login flow with PKCE
  */
 async function initiateOAuthLogin() {
-    if (!OAUTH_CONFIG.clientId) {
-        alert('OAuth Client ID not configured. Please add your OSM client ID to oauth.js');
+    const config = getOAuthConfig();
+    
+    if (!config.clientId) {
+        alert('OAuth Client ID not configured. Please configure it in the Settings panel.');
         return;
     }
 
@@ -72,15 +89,15 @@ async function initiateOAuthLogin() {
 
     const params = new URLSearchParams({
         response_type: 'code',
-        client_id: OAUTH_CONFIG.clientId,
-        redirect_uri: OAUTH_CONFIG.redirectUri,
-        scope: OAUTH_CONFIG.scope,
+        client_id: config.clientId,
+        redirect_uri: config.redirectUri,
+        scope: config.scope,
         state: state,
         code_challenge: codeChallenge,
         code_challenge_method: 'S256'
     });
 
-    window.location.href = `${OAUTH_CONFIG.authorizationUrl}?${params.toString()}`;
+    window.location.href = `${config.authorizationUrl}?${params.toString()}`;
 }
 
 /**
@@ -131,6 +148,7 @@ async function handleOAuthCallback() {
  * Exchange authorization code for access and refresh tokens using PKCE
  */
 async function exchangeCodeForTokens(code) {
+    const config = getOAuthConfig();
     const codeVerifier = sessionStorage.getItem(STORAGE_KEYS.codeVerifier);
     
     if (!codeVerifier) {
@@ -140,13 +158,13 @@ async function exchangeCodeForTokens(code) {
     const params = new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: OAUTH_CONFIG.redirectUri,
-        client_id: OAUTH_CONFIG.clientId,
+        redirect_uri: config.redirectUri,
+        client_id: config.clientId,
         code_verifier: codeVerifier
     });
 
     // Use local proxy to avoid CORS issues
-    const proxyUrl = window.location.origin + '/oauth/token';
+    const proxyUrl = window.location.origin + config.proxyUrl;
     
     const response = await fetch(proxyUrl, {
         method: 'POST',
@@ -201,11 +219,13 @@ async function fetchUserInfo(accessToken) {
     
     return userInfo;
 }
+    
 
 /**
  * Refresh the access token using refresh token
  */
 async function refreshAccessToken() {
+    const config = getOAuthConfig();
     const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken);
     
     if (!refreshToken) {
@@ -215,10 +235,10 @@ async function refreshAccessToken() {
     const params = new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
-        client_id: OAUTH_CONFIG.clientId
+        client_id: config.clientId
     });
 
-    const response = await fetch(OAUTH_CONFIG.tokenUrl, {
+    const response = await fetch(config.tokenUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -252,6 +272,12 @@ function logout() {
     sessionStorage.removeItem(STORAGE_KEYS.state);
     sessionStorage.removeItem(STORAGE_KEYS.codeVerifier);
     
+    // Hide OSM sections and show login prompt
+    const osmContainer = document.getElementById('osm-section-container');
+    const loginPrompt = document.getElementById('osm-login-prompt');
+    if (osmContainer) osmContainer.style.display = 'none';
+    if (loginPrompt) loginPrompt.style.display = 'block';
+    
     updateAuthUI();
 }
 
@@ -271,6 +297,13 @@ function getUserInfo() {
 }
 
 /**
+ * Get stored access token
+ */
+function getAccessToken() {
+    return localStorage.getItem(STORAGE_KEYS.accessToken);
+}
+
+/**
  * Update UI based on authentication state
  */
 function updateAuthUI() {
@@ -278,7 +311,8 @@ function updateAuthUI() {
     const loginBtn = document.getElementById('oauth-login-btn');
     const logoutBtn = document.getElementById('oauth-logout-btn');
     const userInfo = document.getElementById('oauth-user-info');
-    const osmLoadBtn = document.getElementById('osm-load-btn');
+    const osmContainer = document.getElementById('osm-section-container');
+    const osmCollapse = document.getElementById('osmImportCollapse');
 
     if (isLoggedIn) {
         const user = getUserInfo();
@@ -294,18 +328,19 @@ function updateAuthUI() {
             `;
         }
         
-        if (osmLoadBtn) {
-            osmLoadBtn.disabled = false;
-            osmLoadBtn.title = 'Load member data from OSM';
+        // Expand OSM panel when logged in
+        if (osmCollapse) {
+            osmCollapse.classList.add('show');
         }
     } else {
         if (loginBtn) loginBtn.style.display = 'inline-block';
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (userInfo) userInfo.style.display = 'none';
+        if (osmContainer) osmContainer.style.display = 'none';
         
-        if (osmLoadBtn) {
-            osmLoadBtn.disabled = true;
-            osmLoadBtn.title = 'Login to OSM first';
+        // Collapse OSM panel when logged out
+        if (osmCollapse) {
+            osmCollapse.classList.remove('show');
         }
     }
 }
@@ -344,14 +379,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Update UI
     updateAuthUI();
     
-    // If we just completed OAuth, automatically load OSM data
+    // If we just completed OAuth, load sections list
     if (isCallback && isAuthenticated()) {
-        // Small delay to ensure UI is ready
         setTimeout(() => {
-            if (typeof loadFromOSMClick === 'function') {
-                loadFromOSMClick();
+            if (typeof loadUserSections === 'function') {
+                loadUserSections();
             }
         }, 500);
+    } else if (isAuthenticated()) {
+        // Also load sections if already logged in
+        if (typeof loadUserSections === 'function') {
+            loadUserSections();
+        }
     }
     
     // Setup event listeners
@@ -365,4 +404,63 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', logout);
     }
+    
+    // Load settings into UI
+    loadSettingsUI();
 });
+
+/**
+ * Load settings from localStorage into UI inputs
+ */
+function loadSettingsUI() {
+    const config = getOAuthConfig();
+    
+    const clientIdInput = document.getElementById('settings-client-id');
+    const redirectUriInput = document.getElementById('settings-redirect-uri');
+    const proxyUrlInput = document.getElementById('settings-proxy-url');
+    
+    if (clientIdInput) clientIdInput.value = config.clientId;
+    if (redirectUriInput) redirectUriInput.value = config.redirectUri;
+    if (proxyUrlInput) proxyUrlInput.value = config.proxyUrl;
+}
+
+/**
+ * Save settings from UI to localStorage
+ */
+function saveSettings() {
+    const clientId = document.getElementById('settings-client-id').value.trim();
+    const redirectUri = document.getElementById('settings-redirect-uri').value.trim();
+    const proxyUrl = document.getElementById('settings-proxy-url').value.trim();
+    
+    if (!clientId) {
+        alert('Client ID is required');
+        return;
+    }
+    
+    if (!redirectUri) {
+        alert('Redirect URI is required');
+        return;
+    }
+    
+    localStorage.setItem('osm_client_id', clientId);
+    localStorage.setItem('osm_redirect_uri', redirectUri);
+    localStorage.setItem('osm_proxy_url', proxyUrl || DEFAULT_OAUTH_CONFIG.proxyUrl);
+    
+    alert('Settings saved successfully!');
+}
+
+/**
+ * Reset settings to defaults
+ */
+function resetSettings() {
+    if (!confirm('Reset all settings to defaults? This will clear your saved OAuth configuration.')) {
+        return;
+    }
+    
+    localStorage.removeItem('osm_client_id');
+    localStorage.removeItem('osm_redirect_uri');
+    localStorage.removeItem('osm_proxy_url');
+    
+    loadSettingsUI();
+    alert('Settings reset to defaults');
+}

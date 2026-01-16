@@ -35,6 +35,45 @@
             </div>
         </header>
 
+        <!-- Settings Panel -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Settings</h5>
+                <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse">
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+            </div>
+            <div class="collapse" id="settingsCollapse">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="settings-client-id" class="form-label fw-semibold">OAuth Client ID</label>
+                            <input type="text" class="form-control" id="settings-client-id" placeholder="Enter your OSM Client ID">
+                            <small class="text-muted">Required for OSM OAuth authentication</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="settings-redirect-uri" class="form-label fw-semibold">Redirect URI</label>
+                            <input type="text" class="form-control" id="settings-redirect-uri" placeholder="https://localhost:8443/">
+                            <small class="text-muted">Must match your OAuth app settings</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="settings-proxy-url" class="form-label fw-semibold">Proxy URL</label>
+                            <input type="text" class="form-control" id="settings-proxy-url" placeholder="/oauth/token">
+                            <small class="text-muted">Local proxy endpoint for token requests</small>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-primary btn-sm" onclick="saveSettings()">
+                            <i class="bi bi-save me-1"></i>Save Settings
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm ms-2" onclick="resetSettings()">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Controls -->
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
@@ -66,9 +105,14 @@
                         <input type="number" class="form-control" id="maxCapacity" value="10" min="1" max="100">
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-primary w-100" onclick="applySettings()">
-                            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-fill" onclick="applySettings()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="clearData()" title="Clear all data">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -111,47 +155,80 @@
             </div>
         </div>
 
-        <!-- Data Input Panel -->
+        <!-- Data Input Panel - XLSX Upload -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Data Input (OSM XLSX export)</h5>
-                <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#dataInputCollapse">
-                    <i class="bi bi-chevron-down" id="data-panel-toggle"></i>
+                <h5 class="mb-0"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Import from XLSX</h5>
+                <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#xlsxInputCollapse">
+                    <i class="bi bi-chevron-down" id="xlsx-panel-toggle"></i>
                 </button>
             </div>
-            <div class="collapse" id="dataInputCollapse">
+            <div class="collapse" id="xlsxInputCollapse">
                 <div class="card-body">
-                    <!-- XLSX Upload Section -->
-                        <div class="alert alert-info mb-3" role="alert">
-                            <h6 class="alert-heading">In OSM</h6>
-                            <p class="mb-2">Select a section (and repeat for all)</p>
-                            <ul class="mb-0">
-                                <li>Select Members > Personal Details</li>
-                                <li>Select All -> Select Members (to select young people only)</li>
-                                <li>Download -> Details PDF or Spreadsheet</li>
-                                <li>Deselect everything except: Other Data > Date of Birth</li>
-                                <li>Click Spreadsheet</li>
-                                <li>Wait a moment. Click Download</li>
-                                <li>Rpeat for all sections - Once you have all sheets...</li>
-                                <li>On this site - Click "Select XLSX File(s)" and import them all at once</li>
-                            </ul>
-                            <a href="https://github.com/p10tyr/gantry?tab=readme-ov-file#how-to" target="_blank" rel="noopener noreferrer" class="alert-link">Still stuck? More info here ...</a>
+                    <div class="alert alert-info mb-3" role="alert">
+                        <h6 class="alert-heading">In OSM</h6>
+                        <p class="mb-2">Select a section (and repeat for all)</p>
+                        <ul class="mb-0">
+                            <li>Select Members > Personal Details</li>
+                            <li>Select All -> Select Members (to select young people only)</li>
+                            <li>Download -> Details PDF or Spreadsheet</li>
+                            <li>Deselect everything except: Other Data > Date of Birth</li>
+                            <li>Click Spreadsheet</li>
+                            <li>Wait a moment. Click Download</li>
+                            <li>Rpeat for all sections - Once you have all sheets...</li>
+                            <li>On this site - Click "Select XLSX File(s)" and import them all at once</li>
+                        </ul>
+                        <a href="https://github.com/p10tyr/gantry?tab=readme-ov-file#how-to" target="_blank" rel="noopener noreferrer" class="alert-link">Still stuck? More info here ...</a>
+                    </div>
+                    <p class="small text-muted mb-3">Select one or more XLSX files with "First Name" and "Date of Birth" columns exported from OSM</p>
+                    <div class="d-flex gap-2">
+                        <input type="file" id="xlsxFileInput" accept=".xlsx" multiple style="display: none;">
+                        <button class="btn btn-info" onclick="document.getElementById('xlsxFileInput').click()">
+                            <i class="bi bi-file-earmark-arrow-up me-1"></i>Select XLSX File(s)
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearData()">
+                            <i class="bi bi-trash me-1"></i>Clear All
+                        </button>
+                        <span class="align-self-center text-muted small" id="xlsx-status"></span>
+                        <span class="ms-auto align-self-center text-muted" id="data-status"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OSM Live Import Panel -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-cloud-arrow-down me-2"></i>Import from OSM Live</h5>
+                <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#osmImportCollapse">
+                    <i class="bi bi-chevron-down" id="osm-panel-toggle"></i>
+                </button>
+            </div>
+            <div class="collapse" id="osmImportCollapse">
+                <div class="card-body">
+                    <p class="small text-muted mb-3">Select sections to import member data directly from your OSM account</p>
+                    <div id="osm-section-container" style="display: none;">
+                        <div id="osm-sections-list" class="mb-3">
+                            <!-- Sections will be populated here -->
                         </div>
-                        <p class="small text-muted mb-3">Select one or more XLSX files with "First Name" and "Date of Birth" columns exported from OSM</p>
                         <div class="d-flex gap-2">
-                            <input type="file" id="xlsxFileInput" accept=".xlsx" multiple style="display: none;">
-                            <button class="btn btn-info" onclick="document.getElementById('xlsxFileInput').click()">
-                                <i class="bi bi-file-earmark-arrow-up me-1"></i>Select XLSX File(s)
+                            <button class="btn btn-success" id="osm-load-btn" onclick="loadFromOSMClick()" disabled title="Select at least one section">
+                                <i class="bi bi-cloud-download me-1"></i>Load Selected Sections
                             </button>
-                            <button class="btn btn-success" id="osm-load-btn" onclick="loadFromOSMClick()" disabled title="Login to OSM first">
-                                <i class="bi bi-cloud-download me-1"></i>Load from OSM
-                            </button>
-                            <button class="btn btn-outline-secondary" onclick="clearData()">
-                                <i class="bi bi-trash me-1"></i>Clear All
-                            </button>
-                            <span class="align-self-center text-muted small" id="xlsx-status"></span>
-                            <span class="ms-auto align-self-center text-muted" id="data-status"></span>
+                            <span class="align-self-center text-muted small ms-2" id="osm-status"></span>
                         </div>
+                        <!-- Patrol Filters -->
+                        <div id="patrol-filters-container" class="mt-3" style="display: none;">
+                            <label class="form-label fw-semibold small">Filter by Patrol/Six:</label>
+                            <div id="patrol-filters" class="d-flex flex-wrap gap-2">
+                                <!-- Patrol checkboxes will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div id="osm-login-prompt" class="alert alert-warning mb-0" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Please <strong>Login to OSM</strong> above to load member data directly from your account.
+                    </div>
                 </div>
             </div>
         </div>

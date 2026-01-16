@@ -4,6 +4,8 @@
 
 // Global state
 let peopleData = [];
+let activePatrols = new Set(); // Track which patrols are currently active
+let selectedPatrols = new Set(); // Track which patrols are selected for display
 let settings = {
     startYear: 2020,
     endYear: 2050,
@@ -134,12 +136,28 @@ function sortPeople(data) {
 }
 
 function filterPeople(data) {
-    if (settings.filterYear === 'all') return data;
+    // Filter by year
+    let filtered = data;
+    if (settings.filterYear !== 'all') {
+        const year = parseInt(settings.filterYear);
+        filtered = filtered.filter(person => {
+            return person.startYear <= year && person.endYear >= year;
+        });
+    }
     
-    const year = parseInt(settings.filterYear);
-    return data.filter(person => {
-        return person.startYear <= year && person.endYear >= year;
-    });
+    // Filter by patrol if any patrols are selected
+    if (selectedPatrols.size > 0) {
+        filtered = filtered.filter(person => {
+            // If person has no patrol, check if 'None' is selected
+            if (!person.patrol || person.patrol.trim() === '') {
+                return selectedPatrols.has('None');
+            }
+            // If person has a patrol, check if it's selected
+            return selectedPatrols.has(person.patrol);
+        });
+    }
+    
+    return filtered;
 }
 
 // Calculate capacity per year
@@ -846,6 +864,64 @@ function clearData() {
     document.getElementById('xlsxFileInput').value = '';
     
     peopleData = [];
+    activePatrols.clear();
+    selectedPatrols.clear();
+    updatePatrolFilters();
+    renderAll();
+}
+
+/**
+ * Update the patrol filter UI with checkboxes for each patrol
+ */
+function updatePatrolFilters() {
+    const container = document.getElementById('patrol-filters-container');
+    const filtersDiv = document.getElementById('patrol-filters');
+    
+    if (!container || !filtersDiv) return;
+    
+    // Show/hide container based on whether there are patrols
+    if (activePatrols.size === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    filtersDiv.innerHTML = '';
+    
+    // Sort patrols alphabetically
+    const sortedPatrols = Array.from(activePatrols).sort();
+    
+    sortedPatrols.forEach(patrol => {
+        const checkbox = document.createElement('div');
+        checkbox.className = 'form-check form-check-inline';
+        
+        const isChecked = selectedPatrols.has(patrol);
+        const checkboxId = `patrol-${patrol.replace(/\s+/g, '-')}`;
+        
+        checkbox.innerHTML = `
+            <input class="form-check-input" type="checkbox" 
+                   id="${checkboxId}" 
+                   value="${patrol}" 
+                   ${isChecked ? 'checked' : ''}
+                   onchange="togglePatrol('${patrol.replace(/'/g, "\\'")}')">
+            <label class="form-check-label" for="${checkboxId}">
+                ${patrol}
+            </label>
+        `;
+        
+        filtersDiv.appendChild(checkbox);
+    });
+}
+
+/**
+ * Toggle a patrol's visibility
+ */
+function togglePatrol(patrol) {
+    if (selectedPatrols.has(patrol)) {
+        selectedPatrols.delete(patrol);
+    } else {
+        selectedPatrols.add(patrol);
+    }
     renderAll();
 }
 
