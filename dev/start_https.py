@@ -15,6 +15,7 @@ from urllib.error import HTTPError
 PORT = 8443
 OAUTH_TOKEN_URL = 'https://www.onlinescoutmanager.co.uk/oauth/token'
 OAUTH_RESOURCE_URL = 'https://www.onlinescoutmanager.co.uk/oauth/resource'
+OSM_MEMBERS_API_BASE = 'https://www.onlinescoutmanager.co.uk/ext/members/contact/'
 
 def generate_certificate():
     """Generate self-signed certificate using OpenSSL if available"""
@@ -113,7 +114,7 @@ def generate_certificate():
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        """Handle GET requests (OAuth resource proxy)"""
+        """Handle GET requests (OAuth resource proxy and OSM members API proxy)"""
         if self.path.startswith('/oauth/resource'):
             # Proxy the OAuth resource request to avoid CORS issues
             auth_header = self.headers.get('Authorization')
@@ -138,6 +139,55 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                     # Send success response
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(response_data)
+                    
+            except HTTPError as e:
+                # Forward the error response
+                error_data = e.read()
+                self.send_response(e.code)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(error_data)
+                
+            except Exception as e:
+                # Send error response
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                error_json = json.dumps({'error': 'proxy_error', 'message': str(e)})
+                self.wfile.write(error_json.encode())
+        
+        elif self.path.startswith('/api/osm/members'):
+            # Proxy OSM members API to avoid CORS issues
+            # Extract query parameters
+            parsed_path = urllib.parse.urlparse(self.path)
+            query_params = parsed_path.query
+            
+            # Build the OSM API URL
+            osm_url = f"{OSM_MEMBERS_API_BASE}?{query_params}"
+            
+            # Get cookies from request to forward authentication
+            cookie_header = self.headers.get('Cookie')
+            
+            try:
+                # Forward the request to OSM with cookies
+                headers = {
+                    'accept': '*/*',
+                    'x-requested-with': 'XMLHttpRequest'
+                }
+                if cookie_header:
+                    headers['Cookie'] = cookie_header
+                
+                req = urllib.request.Request(osm_url, headers=headers)
+                
+                with urllib.request.urlopen(req) as response:
+                    response_data = response.read()
+                    
+                    # Send success response
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
                     self.wfile.write(response_data)
                     

@@ -274,11 +274,13 @@ function getUserInfo() {
  * Update UI based on authentication state
  */
 function updateAuthUI() {
+    const isLoggedIn = isAuthenticated();
     const loginBtn = document.getElementById('oauth-login-btn');
     const logoutBtn = document.getElementById('oauth-logout-btn');
     const userInfo = document.getElementById('oauth-user-info');
+    const osmLoadBtn = document.getElementById('osm-load-btn');
 
-    if (isAuthenticated()) {
+    if (isLoggedIn) {
         const user = getUserInfo();
         
         if (loginBtn) loginBtn.style.display = 'none';
@@ -291,10 +293,20 @@ function updateAuthUI() {
                 <span class="text-muted small">${user.name || user.email || 'Logged in'}</span>
             `;
         }
+        
+        if (osmLoadBtn) {
+            osmLoadBtn.disabled = false;
+            osmLoadBtn.title = 'Load member data from OSM';
+        }
     } else {
         if (loginBtn) loginBtn.style.display = 'inline-block';
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (userInfo) userInfo.style.display = 'none';
+        
+        if (osmLoadBtn) {
+            osmLoadBtn.disabled = true;
+            osmLoadBtn.title = 'Login to OSM first';
+        }
     }
 }
 
@@ -331,6 +343,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Update UI
     updateAuthUI();
+    
+    // If we just completed OAuth, automatically load OSM data
+    if (isCallback && isAuthenticated()) {
+        // Small delay to ensure UI is ready
+        setTimeout(() => {
+            if (typeof loadFromOSMClick === 'function') {
+                loadFromOSMClick();
+            }
+        }, 500);
+    }
     
     // Setup event listeners
     const loginBtn = document.getElementById('oauth-login-btn');

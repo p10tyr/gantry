@@ -119,7 +119,7 @@
                     <i class="bi bi-chevron-down" id="data-panel-toggle"></i>
                 </button>
             </div>
-            <div class="collapse show" id="dataInputCollapse">
+            <div class="collapse" id="dataInputCollapse">
                 <div class="card-body">
                     <!-- XLSX Upload Section -->
                         <div class="alert alert-info mb-3" role="alert">
@@ -143,11 +143,14 @@
                             <button class="btn btn-info" onclick="document.getElementById('xlsxFileInput').click()">
                                 <i class="bi bi-file-earmark-arrow-up me-1"></i>Select XLSX File(s)
                             </button>
-                              <button class="btn btn-outline-secondary" onclick="clearData()">
-                            <i class="bi bi-trash me-1"></i>Clear All
-                        </button>
+                            <button class="btn btn-success" id="osm-load-btn" onclick="loadFromOSMClick()" disabled title="Login to OSM first">
+                                <i class="bi bi-cloud-download me-1"></i>Load from OSM
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearData()">
+                                <i class="bi bi-trash me-1"></i>Clear All
+                            </button>
                             <span class="align-self-center text-muted small" id="xlsx-status"></span>
-                             <span class="ms-auto align-self-center text-muted" id="data-status"></span>
+                            <span class="ms-auto align-self-center text-muted" id="data-status"></span>
                         </div>
                 </div>
             </div>
@@ -161,7 +164,7 @@
                     <i class="bi bi-chevron-down"></i>
                 </button>
             </div>
-            <div class="collapse show" id="capacityCollapse">
+            <div class="collapse" id="capacityCollapse">
                 <div class="card-body">
                     <div class="capacity-chart" id="capacity-chart"></div>
                     <div class="capacity-legend mt-2 text-muted small">
@@ -265,6 +268,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="osm-api.js"></script>
     <script src="oauth.js"></script>
     <script src="app.js"></script>
 </body>
