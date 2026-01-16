@@ -49,17 +49,12 @@
                         <div class="col-md-4">
                             <label for="settings-client-id" class="form-label fw-semibold">OAuth Client ID</label>
                             <input type="text" class="form-control" id="settings-client-id" placeholder="Enter your OSM Client ID">
-                            <small class="text-muted">Required for OSM OAuth authentication</small>
+                            <small class="text-muted">OSM Public Client OAuth authentication</small>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label for="settings-redirect-uri" class="form-label fw-semibold">Redirect URI</label>
                             <input type="text" class="form-control" id="settings-redirect-uri" placeholder="https://localhost:8443/">
                             <small class="text-muted">Must match your OAuth app settings</small>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="settings-proxy-url" class="form-label fw-semibold">Proxy URL</label>
-                            <input type="text" class="form-control" id="settings-proxy-url" placeholder="/oauth/token">
-                            <small class="text-muted">Local proxy endpoint for token requests</small>
                         </div>
                     </div>
                     <div class="mt-3">

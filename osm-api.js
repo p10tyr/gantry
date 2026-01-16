@@ -186,7 +186,6 @@ async function fetchOSMMembers(sectionId = '29675', termId = '-1', section = 'cu
     
     // Use local proxy to avoid CORS issues - proxy will forward to OSM API
     const url = `/api/osm/members?action=getListOfMembers&sort=dob&sectionid=${sectionId}&termid=${termId}&section=${section}`;
-    // https://www.onlinescoutmanager.co.uk/ext/members/contact/?action=getListOfMembers&sort=dob&sectionid=29675&termid=878820&section=cubs
 
     // Get the access token for Authorization header
     const accessToken = getAccessToken();

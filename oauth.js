@@ -6,7 +6,6 @@ const DEFAULT_OAUTH_CONFIG = {
     resourceUrl: 'https://www.onlinescoutmanager.co.uk/oauth/resource',
     clientId: '',  // Set via settings panel
     redirectUri: 'https://localhost:8443/',
-    proxyUrl: '/oauth/token',
     scope: 'section:member:read'
 };
 
@@ -18,7 +17,6 @@ function getOAuthConfig() {
         resourceUrl: DEFAULT_OAUTH_CONFIG.resourceUrl,
         clientId: localStorage.getItem('osm_client_id') || DEFAULT_OAUTH_CONFIG.clientId,
         redirectUri: localStorage.getItem('osm_redirect_uri') || DEFAULT_OAUTH_CONFIG.redirectUri,
-        proxyUrl: localStorage.getItem('osm_proxy_url') || DEFAULT_OAUTH_CONFIG.proxyUrl,
         scope: DEFAULT_OAUTH_CONFIG.scope
     };
 }
@@ -163,10 +161,7 @@ async function exchangeCodeForTokens(code) {
         code_verifier: codeVerifier
     });
 
-    // Use local proxy to avoid CORS issues
-    const proxyUrl = window.location.origin + config.proxyUrl;
-    
-    const response = await fetch(proxyUrl, {
+    const response = await fetch(config.tokenUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -201,10 +196,9 @@ async function exchangeCodeForTokens(code) {
  * Fetch user information from OSM
  */
 async function fetchUserInfo(accessToken) {
-    // Use local proxy to avoid CORS issues
-    const proxyUrl = window.location.origin + '/oauth/resource';
+    const config = getOAuthConfig();
     
-    const response = await fetch(proxyUrl, {
+    const response = await fetch(config.resourceUrl, {
         headers: {
             'Authorization': `Bearer ${accessToken}`
         }
@@ -417,11 +411,9 @@ function loadSettingsUI() {
     
     const clientIdInput = document.getElementById('settings-client-id');
     const redirectUriInput = document.getElementById('settings-redirect-uri');
-    const proxyUrlInput = document.getElementById('settings-proxy-url');
     
     if (clientIdInput) clientIdInput.value = config.clientId;
     if (redirectUriInput) redirectUriInput.value = config.redirectUri;
-    if (proxyUrlInput) proxyUrlInput.value = config.proxyUrl;
 }
 
 /**
@@ -430,7 +422,6 @@ function loadSettingsUI() {
 function saveSettings() {
     const clientId = document.getElementById('settings-client-id').value.trim();
     const redirectUri = document.getElementById('settings-redirect-uri').value.trim();
-    const proxyUrl = document.getElementById('settings-proxy-url').value.trim();
     
     if (!clientId) {
         alert('Client ID is required');
@@ -444,7 +435,6 @@ function saveSettings() {
     
     localStorage.setItem('osm_client_id', clientId);
     localStorage.setItem('osm_redirect_uri', redirectUri);
-    localStorage.setItem('osm_proxy_url', proxyUrl || DEFAULT_OAUTH_CONFIG.proxyUrl);
     
     alert('Settings saved successfully!');
 }
@@ -459,7 +449,6 @@ function resetSettings() {
     
     localStorage.removeItem('osm_client_id');
     localStorage.removeItem('osm_redirect_uri');
-    localStorage.removeItem('osm_proxy_url');
     
     loadSettingsUI();
     alert('Settings reset to defaults');
