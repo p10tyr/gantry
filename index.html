@@ -15,11 +15,24 @@
 <body>
     <div class="container-fluid py-4">
         <header class="mb-4">
-            <h1 class="display-5 fw-bold text-primary">
-                <i class="bi bi-calendar-range me-2"></i>Age Group Timeline Planner
-            </h1>
-            <p class="lead text-muted">Visualize when people enter and exit age groups over time • Plan capacity and find gaps • It does not store data anywhere, no servers used, no ads, no hidden T&C's, it comes from GitHub for free, unlimited use and Open Source!</p>
-            <p><a href="https://github.com/p10tyr/gantry" target="_blank" rel="noopener noreferrer">GitHub Repository ✌️ Support me with a ⭐</a></p>
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="display-5 fw-bold text-primary">
+                        <i class="bi bi-calendar-range me-2"></i>Age Group Timeline Planner
+                    </h1>
+                    <p class="lead text-muted">Visualize when people enter and exit age groups over time • Plan capacity and find gaps • It does not store data anywhere, no servers used, no ads, no hidden T&C's, it comes from GitHub for free, unlimited use and Open Source!</p>
+                    <p><a href="https://github.com/p10tyr/gantry" target="_blank" rel="noopener noreferrer">GitHub Repository ✌️ Support me with a ⭐</a></p>
+                </div>
+                <div class="text-end">
+                    <button id="oauth-login-btn" class="btn btn-primary" style="display: none;">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Login to OSM
+                    </button>
+                    <button id="oauth-logout-btn" class="btn btn-outline-secondary" style="display: none;">
+                        <i class="bi bi-box-arrow-right me-1"></i>Logout
+                    </button>
+                    <div id="oauth-user-info" class="mt-2" style="display: none;"></div>
+                </div>
+            </div>
         </header>
 
         <!-- Controls -->
@@ -252,6 +265,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="oauth.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
