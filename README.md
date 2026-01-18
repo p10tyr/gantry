@@ -39,6 +39,11 @@ You can now connect directly to OSM using OAuth to import member data automatica
 
 For production use on GitHub Pages, this uses a Cloudflare Worker proxy to handle CORS and secure API calls.
 
+
+# Setting up OAUTH in OSM
+
+todo
+
 # Local Development
 
 To run locally with HTTPS (required for OAuth):
