@@ -4,7 +4,7 @@ const DEFAULT_OAUTH_CONFIG = {
     authorizationUrl: 'https://www.onlinescoutmanager.co.uk/oauth/authorize',
     proxyUrl: 'osm-api-proxy.piotr-e9a.workers.dev',  // Cloudflare Worker proxy
     clientId: '',  // Set via settings panel
-    redirectUri: 'https://localhost:8443/',
+    redirectUri: 'https://p10tyr.github.io/gantry/',
     scope: 'section:member:read'
 };
 
