@@ -1,0 +1,26 @@
+# Cloudflare Worker Configuration
+# https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "osm-api-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Account ID - You'll need to add your Cloudflare account ID here
+# Find it at: https://dash.cloudflare.com/ -> Workers & Pages -> Overview
+# account_id = "your-account-id-here"
+
+# Workers configuration
+workers_dev = true
+
+# Route configuration (uncomment and configure when ready to deploy to production)
+# routes = [
+#   { pattern = "your-domain.com/api/*", zone_name = "your-domain.com" }
+# ]
+
+# Environment variables (optional - can be set via Cloudflare dashboard)
+# [env.production]
+# name = "osm-api-proxy-production"
+
+# Observability
+[observability]
+enabled = true
