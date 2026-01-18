@@ -2,8 +2,7 @@
 // Default values - can be overridden via settings panel
 const DEFAULT_OAUTH_CONFIG = {
     authorizationUrl: 'https://www.onlinescoutmanager.co.uk/oauth/authorize',
-    tokenUrl: 'https://www.onlinescoutmanager.co.uk/oauth/token',
-    resourceUrl: 'https://www.onlinescoutmanager.co.uk/oauth/resource',
+    proxyUrl: 'osm-api-proxy.piotr-e9a.workers.dev',  // Cloudflare Worker proxy
     clientId: '',  // Set via settings panel
     redirectUri: 'https://localhost:8443/',
     scope: 'section:member:read'
@@ -11,10 +10,23 @@ const DEFAULT_OAUTH_CONFIG = {
 
 // Get OAuth config from localStorage or defaults
 function getOAuthConfig() {
+    let proxyUrl = localStorage.getItem('osm_proxy_url');
+    
+    // Use default if empty or invalid
+    if (!proxyUrl || proxyUrl.trim() === '') {
+        proxyUrl = DEFAULT_OAUTH_CONFIG.proxyUrl;
+    }
+    
+    const proxyBase = `https://${proxyUrl}`;
+    
+    console.log('OAuth Config - Proxy URL:', proxyUrl, 'Base:', proxyBase);
+    
     return {
         authorizationUrl: DEFAULT_OAUTH_CONFIG.authorizationUrl,
-        tokenUrl: DEFAULT_OAUTH_CONFIG.tokenUrl,
-        resourceUrl: DEFAULT_OAUTH_CONFIG.resourceUrl,
+        tokenUrl: `${proxyBase}/oauth/token`,
+        resourceUrl: `${proxyBase}/oauth/resource`,
+        apiBase: `${proxyBase}/api/osm`,
+        proxyUrl: proxyUrl,
         clientId: localStorage.getItem('osm_client_id') || DEFAULT_OAUTH_CONFIG.clientId,
         redirectUri: localStorage.getItem('osm_redirect_uri') || DEFAULT_OAUTH_CONFIG.redirectUri,
         scope: DEFAULT_OAUTH_CONFIG.scope
@@ -367,6 +379,11 @@ function showError(message) {
 
 // Initialize OAuth on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize default proxy URL if not set
+    if (!localStorage.getItem('osm_proxy_url')) {
+        localStorage.setItem('osm_proxy_url', DEFAULT_OAUTH_CONFIG.proxyUrl);
+    }
+    
     // Handle OAuth callback if present
     const isCallback = await handleOAuthCallback();
     
@@ -409,9 +426,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 function loadSettingsUI() {
     const config = getOAuthConfig();
     
+    const proxyUrlInput = document.getElementById('settings-proxy-url');
     const clientIdInput = document.getElementById('settings-client-id');
     const redirectUriInput = document.getElementById('settings-redirect-uri');
     
+    if (proxyUrlInput) proxyUrlInput.value = config.proxyUrl;
     if (clientIdInput) clientIdInput.value = config.clientId;
     if (redirectUriInput) redirectUriInput.value = config.redirectUri;
 }
@@ -420,8 +439,14 @@ function loadSettingsUI() {
  * Save settings from UI to localStorage
  */
 function saveSettings() {
+    const proxyUrl = document.getElementById('settings-proxy-url').value.trim();
     const clientId = document.getElementById('settings-client-id').value.trim();
     const redirectUri = document.getElementById('settings-redirect-uri').value.trim();
+    
+    if (!proxyUrl) {
+        alert('Proxy URL is required');
+        return;
+    }
     
     if (!clientId) {
         alert('Client ID is required');
@@ -433,6 +458,7 @@ function saveSettings() {
         return;
     }
     
+    localStorage.setItem('osm_proxy_url', proxyUrl);
     localStorage.setItem('osm_client_id', clientId);
     localStorage.setItem('osm_redirect_uri', redirectUri);
     
@@ -447,6 +473,7 @@ function resetSettings() {
         return;
     }
     
+    localStorage.removeItem('osm_proxy_url');
     localStorage.removeItem('osm_client_id');
     localStorage.removeItem('osm_redirect_uri');
     

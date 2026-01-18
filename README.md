@@ -24,6 +24,32 @@ Once you have downlaoded all your sections, Waiting List/Squirrels, Beavers, Cub
 
 <img width="745" height="1196" alt="image" src="https://github.com/user-attachments/assets/bbe9503e-2ef4-433c-b2f0-ce7ba4023d01" />
 
+# OSM Live Import (NEW!)
+
+You can now connect directly to OSM using OAuth to import member data automatically:
+
+1. **Configure Settings**: Click on Settings and add:
+   - Cloudflare Worker Proxy URL: `osm-api-proxy.piotr-e9a.workers.dev` (or deploy your own - see `cloudflare-worker/README.md`)
+   - OSM OAuth Client ID (get from OSM)
+   - Redirect URI (must match your OAuth app settings)
+
+2. **Login to OSM**: Click "Login to OSM" and authorize the app
+
+3. **Import Data**: Select your sections and terms, then click "Load from OSM"
+
+For production use on GitHub Pages, this uses a Cloudflare Worker proxy to handle CORS and secure API calls.
+
+# Local Development
+
+To run locally with HTTPS (required for OAuth):
+
+1. Navigate to the `dev` folder
+2. Run `python https_server.py`
+3. Visit `https://localhost:8443/`
+4. Accept the self-signed certificate warning
+
+The local HTTPS server serves the HTML files directly. For OSM Live import, configure the Cloudflare Worker proxy URL in settings.
+
 # Disclaimer
 
 This tool is meant to be used to try and help you. Do not use this for final or definitive numbers. There may be slight bugs or oddities to accuracy. Tested as best as I could against my own group and using common sense I understand that some variations may occur.

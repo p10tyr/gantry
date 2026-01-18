@@ -184,8 +184,9 @@ async function fetchOSMMembers(sectionId = '29675', termId = '-1', section = 'cu
     // Log parameters for debugging
     console.log('fetchOSMMembers called with:', { sectionId, termId, section });
     
-    // Use local proxy to avoid CORS issues - proxy will forward to OSM API
-    const url = `/api/osm/members?action=getListOfMembers&sort=dob&sectionid=${sectionId}&termid=${termId}&section=${section}`;
+    // Use Cloudflare Worker proxy to avoid CORS issues
+    const config = getOAuthConfig();
+    const url = `${config.apiBase}/members?action=getListOfMembers&sort=dob&sectionid=${sectionId}&termid=${termId}&section=${section}`;
 
     // Get the access token for Authorization header
     const accessToken = getAccessToken();

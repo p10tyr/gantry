@@ -38,7 +38,12 @@
         <!-- Settings Panel -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Settings</h5>
+                <h5 class="mb-0">
+                    <i class="bi bi-gear me-2"></i>Settings
+                    <a href="https://github.com/p10tyr/gantry#readme" target="_blank" rel="noopener noreferrer" class="ms-2" title="View setup guide">
+                        <i class="bi bi-question-circle text-muted"></i>
+                    </a>
+                </h5>
                 <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="collapse" data-bs-target="#settingsCollapse">
                     <i class="bi bi-chevron-down"></i>
                 </button>
@@ -47,11 +52,25 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label for="settings-client-id" class="form-label fw-semibold">OAuth Client ID</label>
+                            <label for="settings-proxy-url" class="form-label fw-semibold">
+                                Proxy URL 
+                                <a href="https://www.onlinescoutmanager.co.uk/oauth/admin" target="_blank" rel="noopener noreferrer" class="ms-1" title="Manage OAuth apps in OSM">
+                                    <i class="bi bi-box-arrow-up-right small text-muted"></i>
+                                </a></label>
+                            <input type="text" class="form-control" id="settings-proxy-url" value="osm-api-proxy.piotr-e9a.workers.dev">
+                            <small class="text-muted">Your Cloudflare Worker URL (without https://)</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="settings-client-id" class="form-label fw-semibold">
+                                OAuth Client ID
+                                <a href="https://www.onlinescoutmanager.co.uk/oauth/admin" target="_blank" rel="noopener noreferrer" class="ms-1" title="Manage OAuth apps in OSM">
+                                    <i class="bi bi-box-arrow-up-right small text-muted"></i>
+                                </a>
+                            </label>
                             <input type="text" class="form-control" id="settings-client-id" placeholder="Enter your OSM Client ID">
                             <small class="text-muted">OSM Public Client OAuth authentication</small>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="settings-redirect-uri" class="form-label fw-semibold">Redirect URI</label>
                             <input type="text" class="form-control" id="settings-redirect-uri" placeholder="https://localhost:8443/">
                             <small class="text-muted">Must match your OAuth app settings</small>
