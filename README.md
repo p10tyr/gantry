@@ -26,16 +26,7 @@ Once you have downlaoded all your sections, Waiting List/Squirrels, Beavers, Cub
 
 # OSM Live Import (NEW!)
 
-You can now connect directly to OSM using OAuth to import member data automatically:
-
-1. **Configure Settings**: Click on Settings and add:
-   - Cloudflare Worker Proxy URL: `osm-api-proxy.piotr-e9a.workers.dev` (or deploy your own - see `cloudflare-worker/README.md`)
-   - OSM OAuth Client ID (get from OSM)
-   - Redirect URI (must match your OAuth app settings)
-
-2. **Login to OSM**: Click "Login to OSM" and authorize the app
-
-3. **Import Data**: Select your sections and terms, then click "Load from OSM"
+<img width="1064" height="482" alt="image" src="https://github.com/user-attachments/assets/78125bba-a54a-4603-bd68-bef7b74cf6e4" />
 
 For production use on GitHub Pages, this uses a Cloudflare Worker proxy to handle CORS and secure API calls.
 
@@ -58,12 +49,10 @@ That is the OSM part setup completed. Back on the website in the settings panel 
 
 > These details are not stored, logged or processed anywhere. You do need to use a proxy but read about the proxy below.
 
-
-1. Proxy URL > a proxy you trust but you can use `osm-api-proxy.piotr-e9a.workers.dev` the default.
-   -  Please read below about proxies so that you dont get into trouble
-2. OAuth Cliend ID > The ID you saved securly using the steps above.
-3. Redirect URL > Should be `https://p10tyr.github.io/gantry/` if you are using the self hosted version I provide.
-   - If you are hosting your own you will know what to put in here
+1. **Configure Settings**: Click on Settings and add:
+   - Cloudflare Worker Proxy URL: `osm-api-proxy.piotr-e9a.workers.dev` (or deploy your own - see `cloudflare-worker/README.md`)
+   - OSM OAuth Client ID (get from OSM)
+   - Redirect URI (must match your OAuth app settings) which by default is `https://p10tyr.github.io/gantry/`
 3. Save Settings
 4. Click Log In to Osm in the top right.
 5. You will be redirected to OSM . The login you use are the same permission what you will see in OSM (Sections/ Members) you see here.
